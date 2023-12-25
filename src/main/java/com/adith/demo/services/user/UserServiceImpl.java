@@ -1,6 +1,7 @@
 package com.adith.demo.services.user;
 
 import com.adith.demo.entities.UserEntity;
+import com.adith.demo.exceptions.UserAlreadyExistsException;
 import com.adith.demo.models.JwtRequest;
 import com.adith.demo.models.RegistrationRequest;
 import com.adith.demo.models.RegistrationResponse;
@@ -18,6 +19,8 @@ import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -37,7 +40,13 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public RegistrationResponse registerUser(RegistrationRequest request) {
+    public RegistrationResponse registerUser(RegistrationRequest request) throws UserAlreadyExistsException {
+        Optional<UserEntity> existingUser
+                = userRepository.findByUsername(request.username());
+
+        if(existingUser.isPresent())
+            throw new UserAlreadyExistsException("User name already exists");
+
         UserEntity user=new UserEntity();
         user.setUsername(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));

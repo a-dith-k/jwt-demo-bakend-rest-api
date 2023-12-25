@@ -26,5 +26,11 @@ public class ExceptionHandling {
         return ResponseEntity.internalServerError().body("Something Went Wrong");
     }
 
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<String> userExistsException(){
+
+        return ResponseEntity.internalServerError().body("Something Went Wrong");
+    }
+
 
 }

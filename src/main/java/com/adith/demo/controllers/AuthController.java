@@ -1,5 +1,6 @@
 package com.adith.demo.controllers;
 
+import com.adith.demo.exceptions.UserAlreadyExistsException;
 import com.adith.demo.models.RegistrationResponse;
 import com.adith.demo.services.user.UserService;
 import com.adith.demo.models.RegistrationRequest;
@@ -39,13 +40,19 @@ public class AuthController{
 				.body(new JwtResponse(request.username(),token));
 	}
 
+	@CrossOrigin("http://localhost:4200")
 	@PostMapping("/register")
 	public ResponseEntity<RegistrationResponse> registerUser(@RequestBody RegistrationRequest request){
 
 		RegistrationResponse response
-				=userService.registerUser(request);
+				= null;
+		try {
+			response = userService.registerUser(request);
+		} catch (UserAlreadyExistsException e) {
+			throw new RuntimeException(e);
+		}
 
-		return  ResponseEntity.ok(response);
+		return  ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
 	
