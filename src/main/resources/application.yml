@@ -12,7 +12,10 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
-
+  devtools:
+    livereload:
+      enabled: false
+      port: 8081
 
 
 

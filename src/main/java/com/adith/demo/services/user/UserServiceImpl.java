@@ -5,9 +5,12 @@ import com.adith.demo.exceptions.UserAlreadyExistsException;
 import com.adith.demo.models.JwtRequest;
 import com.adith.demo.models.RegistrationRequest;
 import com.adith.demo.models.RegistrationResponse;
+import com.adith.demo.models.UserDto;
 import com.adith.demo.repositories.UserRepository;
 import com.adith.demo.services.jwt.JwtService;
+import jdk.jshell.spi.ExecutionControl;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,18 +23,22 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+    final private ModelMapper modelMapper;
+
     final private UserRepository userRepository;
     final private  JwtService jwtService;;
     final private PasswordEncoder passwordEncoder;
     final private AuthenticationManager authenticationManager;
 
-    public UserServiceImpl(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+    public UserServiceImpl(ModelMapper modelMapper, UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+        this.modelMapper = modelMapper;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
@@ -45,7 +52,7 @@ public class UserServiceImpl implements UserService {
                 = userRepository.findByUsername(request.username());
 
         if(existingUser.isPresent())
-            throw new UserAlreadyExistsException("User name already exists");
+            throw   new UserAlreadyExistsException("User name already exists");
 
         UserEntity user=new UserEntity();
         user.setUsername(request.username());
@@ -77,4 +84,20 @@ public class UserServiceImpl implements UserService {
 
 
     }
+
+    @Override
+    public List<UserDto> getAllUsers() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public UserDto getUserByUsername(String username) {
+        UserEntity user=userRepository
+                .findByUsername(username)
+                .orElseThrow(()->new UsernameNotFoundException("User does not exist"));
+        return
+                modelMapper
+                        .map(user, UserDto.class);
+    }
+
 }

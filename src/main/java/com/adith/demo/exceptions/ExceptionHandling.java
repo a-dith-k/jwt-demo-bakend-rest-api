@@ -1,11 +1,9 @@
 package com.adith.demo.exceptions;
 
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.MalformedJwtException;
+import com.adith.demo.models.LoginResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -20,17 +18,22 @@ public class ExceptionHandling {
                 .status(HttpStatus.UNAUTHORIZED).body("Bad Credentials");
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> UnknownError(){
-
-        return ResponseEntity.internalServerError().body("Something Went Wrong");
-    }
-
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<String> userExistsException(){
+    public ResponseEntity<LoginResponse> userExistsException(){
 
-        return ResponseEntity.internalServerError().body("Something Went Wrong");
+
+
+        return ResponseEntity.badRequest()
+                .body(LoginResponse.of(HttpStatus.BAD_REQUEST.value(),"User with given username already exists"));
     }
+
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<String> UnknownError(){
+//
+//        return ResponseEntity.internalServerError().body("Something Went Wrong");
+//    }
+
+
 
 
 }

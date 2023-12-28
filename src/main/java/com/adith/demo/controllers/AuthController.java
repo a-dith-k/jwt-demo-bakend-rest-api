@@ -40,18 +40,11 @@ public class AuthController{
 				.body(new JwtResponse(request.username(),token));
 	}
 
-	@CrossOrigin("http://localhost:4200")
 	@PostMapping("/register")
-	public ResponseEntity<RegistrationResponse> registerUser(@RequestBody RegistrationRequest request){
+	public ResponseEntity<RegistrationResponse> registerUser(@RequestBody RegistrationRequest request) throws UserAlreadyExistsException {
 
 		RegistrationResponse response
-				= null;
-		try {
-			response = userService.registerUser(request);
-		} catch (UserAlreadyExistsException e) {
-			throw new RuntimeException(e);
-		}
-
+				= userService.registerUser(request);
 		return  ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 

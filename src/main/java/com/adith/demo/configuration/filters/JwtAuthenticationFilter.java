@@ -35,6 +35,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull FilterChain filterChain) throws ServletException, IOException {
         String authHeader=request.getHeader("Authorization");
+        log.info(authHeader);
+        if(authHeader==null)
+            log.info("Authorization Header is Null");
         String token=null;
         String username=null;
 
@@ -55,7 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.info("Token modified | Invalid Token");
                     log.error("MalformedJwtException{}",MalformedJwtException.class);
                 } catch (Exception e) {
-                    log.error("Exception{}",Exception.class);
+                    log.error("Exception{}",e.getMessage());
 
                 }
 

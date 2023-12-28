@@ -25,32 +25,11 @@ public class JwtServiceImpl implements JwtService {
 	Instant now= Instant.now();
 
 	private static final long EXPIRATION_TIME=1000*60*60*24*5L;
-
-	
-		private static final String SECRET_KEY="5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
+	private static final SecretKey key = Jwts.SIG.HS384.key().build();
 
 
 	@Override
 	public String generateToken(String username) {
-		SecretKey key = Jwts.SIG.HS256.key().build();
-
-		String jwt = Jwts.builder()                     // (1)
-
-				.header()
-				.add("type","JWT")// (2) optional
-				.keyId("aKeyId")
-				.and()
-
-				.subject("Bob")                             // (3) JSON Claims, or
-				//.content(aByteArray, "text/plain")        //     any byte[] content, with media type
-
-				.signWith(key)                       // (4) if signing, or
-				//.encryptWith(key, keyAlg, encryptionAlg)  //     if encrypting
-
-				.compact();
-
-
-
 
 		Map<String,Object> claims
 								=new HashMap<>();
@@ -68,14 +47,14 @@ public class JwtServiceImpl implements JwtService {
 			.issuedAt(new Date(System.currentTimeMillis()))
 			.expiration(new Date(System.currentTimeMillis()+EXPIRATION_TIME))
 			.signWith(getSignKey()).compact();
-
 		
 	}
 
 	public Key getSignKey(){
+		return key;
 
-		byte[] bytes =Decoders.BASE64.decode(SECRET_KEY);
-		return Keys.hmacShaKeyFor(bytes);
+//		byte[] bytes =Decoders.BASE64.decode(SECRET_KEY);
+//		return key;
 
 	}
 
