@@ -2,28 +2,24 @@ package com.adith.demo.services.user;
 
 import com.adith.demo.entities.UserEntity;
 import com.adith.demo.exceptions.UserAlreadyExistsException;
-import com.adith.demo.models.JwtRequest;
-import com.adith.demo.models.RegistrationRequest;
-import com.adith.demo.models.RegistrationResponse;
-import com.adith.demo.models.UserDto;
+import com.adith.demo.exceptions.UserNotFoundException;
+import com.adith.demo.models.*;
 import com.adith.demo.repositories.UserRepository;
 import com.adith.demo.services.jwt.JwtService;
-import jdk.jshell.spi.ExecutionControl;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.naming.ServiceUnavailableException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -86,18 +82,100 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> getAllUsers() {
-        throw new RuntimeException("Not implemented");
+    public List<UserResponseDto> getAllUsers() {
+
+      return   userRepository.findAll()
+              .stream()
+              .map(user-> modelMapper.map(user,UserResponseDto.class))
+              .toList();
     }
 
     @Override
-    public UserDto getUserByUsername(String username) {
-        UserEntity user=userRepository
+    public UserProfileDto getUserByUsername(String username) {
+        UserEntity user
+                =userRepository
                 .findByUsername(username)
                 .orElseThrow(()->new UsernameNotFoundException("User does not exist"));
         return
                 modelMapper
-                        .map(user, UserDto.class);
+                        .map(user, UserProfileDto.class);
     }
+
+    @Override
+    public void deleteUser(Integer id)throws UserNotFoundException {
+        UserEntity user
+                =userRepository
+                .findById(id)
+                .orElseThrow(()-> new UserNotFoundException("User not found"));
+        userRepository.delete(user);
+    }
+
+    @Override
+    public UserResponseDto getUserByUserId(Integer id) {
+        UserEntity existingUser
+                =userRepository
+                .findById(id)
+                .orElseThrow(()->new UserNotFoundException("User not found"));
+        existingUser.setPassword(null);
+        return modelMapper.map(existingUser, UserResponseDto.class);
+    }
+
+    @Override
+    public void updateUser(UserRequestDto request,Integer id) throws UserNotFoundException, UserAlreadyExistsException {
+        UserEntity existingUser=userRepository
+                .findById(
+                        id
+                ).orElseThrow(()->new UserNotFoundException("User not Found"));
+
+        if(!request.getUsername().equals(existingUser.getUsername())
+                &&isDuplicate(request.getUsername())
+        ){
+            throw new UserAlreadyExistsException("User already Exists");
+        }
+
+        request
+                .setPassword(
+                        passwordEncoder.encode(request.getPassword())
+                );
+        UserEntity user
+                = modelMapper.map(request, UserEntity.class);
+        user.setUserId(id);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void updateProfile(UserProfileDto request) {
+           UserEntity existingUser= userRepository
+                    .findByUsername(
+                            request.getUsername()
+                    ).orElseThrow(()->new UserNotFoundException("User Not Found"));
+
+           UserEntity user
+                   =modelMapper.map(request,UserEntity.class);
+           user.setUserId(existingUser.getUserId());
+           userRepository.save(user);
+    }
+
+    @Override
+    public void createUser(UserRequestDto request) throws UserAlreadyExistsException {
+        if(isDuplicate(request.getUsername()))
+            throw new UserAlreadyExistsException("User already Exists");
+
+        request
+                .setPassword(
+                        passwordEncoder.
+                                encode(request.getPassword())
+                );
+        userRepository
+                .save(
+                        modelMapper.map(request,UserEntity.class)
+                );
+    }
+
+    @Override
+    public boolean isDuplicate(String username){
+        return userRepository.findByUsername(username).isPresent();
+    }
+
 
 }

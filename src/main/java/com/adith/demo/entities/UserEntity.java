@@ -2,7 +2,9 @@ package com.adith.demo.entities;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.validation.annotation.Validated;
 
 @Entity
 @Data
@@ -14,6 +16,7 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     Integer userId;
     String username;
     String firstName="Guest";
@@ -21,4 +24,5 @@ public class UserEntity {
     String place;
     String password;
     Short age;
+    Boolean isEnabled;
 }

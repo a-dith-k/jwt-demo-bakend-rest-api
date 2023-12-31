@@ -46,7 +46,7 @@ public class JwtServiceImpl implements JwtService {
 			.subject(username)
 			.issuedAt(new Date(System.currentTimeMillis()))
 			.expiration(new Date(System.currentTimeMillis()+EXPIRATION_TIME))
-			.signWith(getSignKey()).compact();
+			.signWith(key).compact();
 		
 	}
 
@@ -60,7 +60,7 @@ public class JwtServiceImpl implements JwtService {
 
 	@Override
 	public String extractUsername(String token) throws JwtException {
-			JwtParser parser=Jwts.parser().verifyWith((SecretKey) getSignKey()).build();
+			JwtParser parser=Jwts.parser().verifyWith(key).build();
 			Jws<Claims> claims=parser.parseSignedClaims(token);
 
 			return claims.getPayload().getSubject();
@@ -79,7 +79,7 @@ public class JwtServiceImpl implements JwtService {
 	}
 
 	public boolean isTokenExpired(String token) {
-		JwtParser parser=Jwts.parser().verifyWith((SecretKey) getSignKey()).build();
+		JwtParser parser=Jwts.parser().verifyWith(key).build();
 		Jws<Claims> claims=parser.parseSignedClaims(token);
 		return claims.getPayload().getExpiration().before(new Date(System.currentTimeMillis()));
 	}
