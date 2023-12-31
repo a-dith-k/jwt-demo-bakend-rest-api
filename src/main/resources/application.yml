@@ -16,7 +16,8 @@ spring:
     livereload:
       enabled: false
       port: 8081
-
-
+  docker:
+    compose:
+      enabled: false
 
 
