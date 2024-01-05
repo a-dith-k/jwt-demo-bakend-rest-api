@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpServerErrorException.ServiceUnavailable;
 
 import javax.naming.ServiceUnavailableException;
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +55,12 @@ public class ExceptionHandling {
 
 
         return ResponseEntity.badRequest().body(errorMap);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Void> accessDeniedException(){
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
 //    @ExceptionHandler(Exception.class)

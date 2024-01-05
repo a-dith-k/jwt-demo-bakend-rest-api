@@ -19,5 +19,8 @@ spring:
   docker:
     compose:
       enabled: false
-
-
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

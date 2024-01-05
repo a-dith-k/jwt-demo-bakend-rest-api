@@ -1,13 +1,13 @@
 package com.adith.demo.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserProfileDto {
+    Integer id;
     String username;
     String firstName;
     String lastName;

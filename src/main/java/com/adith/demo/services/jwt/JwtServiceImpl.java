@@ -4,8 +4,12 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+
+import org.hibernate.validator.constraints.ISBN;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import com.adith.demo.entities.UserEntity;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
@@ -29,21 +33,26 @@ public class JwtServiceImpl implements JwtService {
 
 
 	@Override
-	public String generateToken(String username) {
+	public String generateToken(UserDetails userDetails) {
 
 		Map<String,Object> claims
 								=new HashMap<>();
+		boolean isAdmin=false;
+		if(userDetails.getAuthorities()!=null&&userDetails.getAuthorities().contains("ADMIN"))
+			 isAdmin=true;
+
 		return 
-			createToken(claims, username);
+			createToken(claims, userDetails.getUsername(),isAdmin);
 	}
 
 	@Override
-	public String createToken(Map<String,Object>claims, String username) {
+	public String createToken(Map<String,Object>claims, String username,boolean isAdmin) {
 		
 	return Jwts
 			.builder()
 			.claims(claims)
 			.subject(username)
+			.claim("admin",isAdmin)
 			.issuedAt(new Date(System.currentTimeMillis()))
 			.expiration(new Date(System.currentTimeMillis()+EXPIRATION_TIME))
 			.signWith(key).compact();
@@ -62,7 +71,6 @@ public class JwtServiceImpl implements JwtService {
 	public String extractUsername(String token) throws JwtException {
 			JwtParser parser=Jwts.parser().verifyWith(key).build();
 			Jws<Claims> claims=parser.parseSignedClaims(token);
-
 			return claims.getPayload().getSubject();
 
 	}

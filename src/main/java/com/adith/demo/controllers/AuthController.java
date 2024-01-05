@@ -21,8 +21,6 @@ import com.adith.demo.models.JwtResponse;
 @RequestMapping("auth")
 public class AuthController{
 
-
-
 	final private UserService userService;
 
 	public AuthController( UserService userService) {

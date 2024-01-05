@@ -1,10 +1,9 @@
 package com.adith.demo.entities;
 
 
+import com.adith.demo.enums.UserRole;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.springframework.validation.annotation.Validated;
 
 @Entity
 @Data
@@ -25,4 +24,5 @@ public class UserEntity {
     String password;
     Short age;
     Boolean isEnabled;
+    UserRole userRole;
 }

@@ -1,25 +1,36 @@
 package com.adith.demo.services.user;
 
+import com.adith.demo.configuration.user.UserDetailsServiceImpl;
+import com.adith.demo.entities.ProfileImageEntity;
 import com.adith.demo.entities.UserEntity;
 import com.adith.demo.exceptions.UserAlreadyExistsException;
 import com.adith.demo.exceptions.UserNotFoundException;
 import com.adith.demo.models.*;
+import com.adith.demo.repositories.ProfileImageRepository;
 import com.adith.demo.repositories.UserRepository;
 import com.adith.demo.services.jwt.JwtService;
+import com.adith.demo.utils.ImageUtil;
+
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.http.UserDetailsServiceFactoryBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.naming.ServiceUnavailableException;
+import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -27,18 +38,28 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     final private ModelMapper modelMapper;
+    @Autowired
+    UserDetailsService service;
 
     final private UserRepository userRepository;
     final private  JwtService jwtService;;
     final private PasswordEncoder passwordEncoder;
     final private AuthenticationManager authenticationManager;
+    final private ProfileImageRepository profileImageRepository;
 
-    public UserServiceImpl(ModelMapper modelMapper, UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+    public UserServiceImpl(     ModelMapper modelMapper, 
+                                UserRepository userRepository,
+                                 JwtService jwtService,
+                                  PasswordEncoder passwordEncoder,
+                                   AuthenticationManager authenticationManager,
+                                   ProfileImageRepository profileImageRepository
+                        ) {
         this.modelMapper = modelMapper;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.profileImageRepository=profileImageRepository;
     }
 
 
@@ -69,9 +90,11 @@ public class UserServiceImpl implements UserService {
                         .authenticate(new UsernamePasswordAuthenticationToken
                                             (request.username(),request.password())
                         );
-
+        
+        
+       UserDetails userDetails= service.loadUserByUsername(request.username());
         String token=
-                jwtService.generateToken(request.username());
+                jwtService.generateToken(userDetails);
 
         if(authentication.isAuthenticated()&&token!=null)
             return token;
@@ -92,6 +115,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserProfileDto getUserByUsername(String username) {
+        System.out.println("Called");
         UserEntity user
                 =userRepository
                 .findByUsername(username)
@@ -127,6 +151,8 @@ public class UserServiceImpl implements UserService {
                         id
                 ).orElseThrow(()->new UserNotFoundException("User not Found"));
 
+        System.out.println(request);
+
         if(!request.getUsername().equals(existingUser.getUsername())
                 &&isDuplicate(request.getUsername())
         ){
@@ -137,23 +163,21 @@ public class UserServiceImpl implements UserService {
                 .setPassword(
                         passwordEncoder.encode(request.getPassword())
                 );
-        UserEntity user
-                = modelMapper.map(request, UserEntity.class);
-        user.setUserId(id);
-        userRepository.save(user);
+         modelMapper.map(request, existingUser);
+
+        userRepository.save(existingUser);
     }
 
     @Override
     public void updateProfile(UserProfileDto request) {
            UserEntity existingUser= userRepository
-                    .findByUsername(
-                            request.getUsername()
+                    .findById(
+                            request.getId()
                     ).orElseThrow(()->new UserNotFoundException("User Not Found"));
 
-           UserEntity user
-                   =modelMapper.map(request,UserEntity.class);
-           user.setUserId(existingUser.getUserId());
-           userRepository.save(user);
+          modelMapper.map(request,existingUser);
+           
+           userRepository.save(existingUser);
     }
 
     @Override
@@ -176,6 +200,34 @@ public class UserServiceImpl implements UserService {
     public boolean isDuplicate(String username){
         return userRepository.findByUsername(username).isPresent();
     }
+
+    @Override
+    public void updateProfileImage(MultipartFile image,Integer userId) throws IOException{
+        try{
+                 ProfileImageEntity profileImage
+                        =ProfileImageEntity.of(1,userRepository.findById(userId).orElseThrow(()->new UserNotFoundException("User not found")),image.getOriginalFilename(),image.getContentType(),image.getBytes());
+                                        // .id(1)
+                                        // .user(userRepository.findById(userId).orElseThrow(()->new UserNotFoundException("User not found")))
+                                        // .name(image.getOriginalFilename())
+                                        // .type(image.getContentType())
+                                        // .bytes()
+                                        // .build();
+                profileImageRepository.save(profileImage);  
+        }catch(UserNotFoundException ue){
+                log.error("Exception", ue.getMessage());
+        }catch(Error e){
+              log.error(e.getMessage());
+        }
+       
+    }
+
+        @Override
+        public byte[] getProfileImage(Integer userId){
+                
+              ProfileImageEntity profileImageEntity= profileImageRepository.findByUser(userRepository.findById(userId).get());
+
+              return profileImageEntity.getBytes()!=null? profileImageEntity.getBytes():null;
+        }
 
 
 }

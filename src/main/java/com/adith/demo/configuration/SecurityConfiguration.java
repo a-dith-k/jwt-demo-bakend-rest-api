@@ -2,6 +2,7 @@ package com.adith.demo.configuration;
 
 import com.adith.demo.configuration.filters.JwtAuthenticationFilter;
 import com.adith.demo.configuration.user.UserDetailsServiceImpl;
+import com.adith.demo.enums.UserRole;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -11,7 +12,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,7 +24,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+
 import java.util.List;
 
 @Configuration
@@ -50,6 +50,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth->
                         auth
                                 .requestMatchers(HttpMethod.POST,"/auth/**").permitAll()
+                                .requestMatchers("/admin/**").hasAuthority(UserRole.ADMIN.name())
+                                .requestMatchers("/actuator/**").permitAll()
                                 .requestMatchers("/").permitAll()
                                 .anyRequest().authenticated()
 

@@ -18,7 +18,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.swing.table.TableRowSorter;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -84,8 +86,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
 
-
             filterChain.doFilter(request,response);
+
     }
 
 }

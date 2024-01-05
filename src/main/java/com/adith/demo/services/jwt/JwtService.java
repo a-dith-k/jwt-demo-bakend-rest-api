@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 public interface JwtService {
 
 	
-	public String generateToken(String username);
+	public String generateToken(UserDetails userDetails);
 
-	public String createToken(Map<String, Object> claims, String username);
+	public String createToken(Map<String, Object> claims, String username,boolean isAdmin);
 
 	public Key getSignKey();
 

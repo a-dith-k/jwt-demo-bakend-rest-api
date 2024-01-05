@@ -1,11 +1,10 @@
 package com.adith.demo.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.modelmapper.internal.bytebuddy.asm.Advice;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDto {

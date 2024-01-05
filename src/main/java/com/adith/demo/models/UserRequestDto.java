@@ -5,9 +5,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class UserRequestDto {
 
     @NotNull
@@ -22,5 +24,5 @@ public class UserRequestDto {
     String lastName;
     String place;
     Short age;
-    Boolean isEnabled;
+    Boolean isEnabled=true;
 }
